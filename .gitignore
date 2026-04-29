@@ -1,0 +1,9 @@
+**/bin/
+**/obj/
+.dotnet_home/
+src/LearningHub.Api/*.db
+src/LearningHub.Api/*.db-shm
+src/LearningHub.Api/*.db-wal
+src/LearningHub.Api/*.sqlite
+src/LearningHub.Api/*.sqlite-shm
+src/LearningHub.Api/*.sqlite-wal
