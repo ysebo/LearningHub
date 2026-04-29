@@ -17,10 +17,10 @@ builder.Services.AddDbContext<LearningHubDbContext>(options =>
 
 // Repositories
 builder.Services.AddScoped<ICategoryRepository, CategoryRepository>();
-
+builder.Services.AddScoped<IStudentRepository, StudentRepository>();
 // Services
 builder.Services.AddScoped<ICategoryService, CategoryService>();
-
+builder.Services.AddScoped<IStudentService, StudentService>();
 var app = builder.Build();
 
 if (app.Environment.IsDevelopment())
