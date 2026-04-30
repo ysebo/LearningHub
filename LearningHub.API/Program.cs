@@ -1,7 +1,7 @@
 using LearningHub.Application.Interfaces.Persistence;
 using LearningHub.Application.Interfaces.Services;
 using LearningHub.Application.Services;
-using LearningHub.Api.Middleware;
+using LearningHub.API.Middleware;
 using LearningHub.Infrastructure.Persistence;
 using LearningHub.Infrastructure.Repositories;
 using Microsoft.EntityFrameworkCore;
