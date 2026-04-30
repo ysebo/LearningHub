@@ -1,56 +1,41 @@
-using LearningHub.Application.Exceptions;
-using Microsoft.AspNetCore.Mvc;
-using System;
 using System.Net;
-using System.Threading.Tasks;
+using System.Text.Json;
 
-namespace LearningHub.Api.Middleware;
+namespace LearningHub.API.Middleware;
 
-public class ExceptionMiddleware
+public sealed class ExceptionHandlingMiddleware(RequestDelegate next, ILogger<ExceptionHandlingMiddleware> logger)
 {
-    private readonly RequestDelegate _next;
-    private readonly ILogger<ExceptionMiddleware> _logger;
-
-    public ExceptionMiddleware(RequestDelegate next, ILogger<ExceptionMiddleware> logger)
-    {
-        _next = next;
-        _logger = logger;
-    }
-
     public async Task InvokeAsync(HttpContext context)
     {
         try
         {
-            await _next(context);
+            await next(context);
         }
-        catch (Exception exception)
+        catch (Exception ex)
         {
-            _logger.LogError(
-                exception,
-                "Unhandled exception while processing {Method} {Path}",
-                context.Request.Method,
-                context.Request.Path);
-
-            await HandleExceptionAsync(context);
+            logger.LogError(ex, "Unhandled exception occurred.");
+            await HandleExceptionAsync(context, ex);
         }
     }
 
-    private static async Task HandleExceptionAsync(HttpContext context)
+    private static async Task HandleExceptionAsync(HttpContext context, Exception exception)
     {
-        context.Response.ContentType = "application/json";
-        context.Response.StatusCode = (int)HttpStatusCode.InternalServerError;
-
-        var problemDetails = new ProblemDetails
+        var (statusCode, message) = exception switch
         {
-            Status = context.Response.StatusCode,
-            Title = "Server error.",
-            Type = "https://tools.ietf.org/html/rfc9110#section-15.6.1",
-            Detail = "An unexpected error occurred.",
-            Instance = context.Request.Path
+            KeyNotFoundException => (HttpStatusCode.NotFound, exception.Message),
+            InvalidOperationException => (HttpStatusCode.BadRequest, exception.Message),
+            _ => (HttpStatusCode.InternalServerError, "An unexpected error occurred.")
         };
 
-        problemDetails.Extensions["traceId"] = context.TraceIdentifier;
+        context.Response.ContentType = "application/json";
+        context.Response.StatusCode = (int)statusCode;
 
-        await context.Response.WriteAsJsonAsync(problemDetails);
+        var response = new
+        {
+            status = (int)statusCode,
+            error = message
+        };
+
+        await context.Response.WriteAsync(JsonSerializer.Serialize(response));
     }
 }

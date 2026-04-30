@@ -1,10 +1,10 @@
 using LearningHub.Application.Interfaces.Persistence;
+using LearningHub.Application.Interfaces.Services;
 using LearningHub.Application.Services;
-using LearningHub.Infrastructure.Persistence; 
-using Microsoft.EntityFrameworkCore;
+using LearningHub.Infrastructure.Persistence;
 using LearningHub.Infrastructure.Repositories;
 using Microsoft.EntityFrameworkCore;
-using LearningHub.Application.Interfaces.Services;
+using LearningHub.API.Middleware;
 var builder = WebApplication.CreateBuilder(args);
 
 builder.Services.AddControllers();
@@ -18,10 +18,18 @@ builder.Services.AddDbContext<LearningHubDbContext>(options =>
 // Repositories
 builder.Services.AddScoped<ICategoryRepository, CategoryRepository>();
 builder.Services.AddScoped<IStudentRepository, StudentRepository>();
+builder.Services.AddScoped<ICourseRepository, CourseRepository>();
+builder.Services.AddScoped<IEnrollmentRepository, EnrollmentRepository>();
+
 // Services
 builder.Services.AddScoped<ICategoryService, CategoryService>();
 builder.Services.AddScoped<IStudentService, StudentService>();
+builder.Services.AddScoped<ICourseService, CourseService>();
+builder.Services.AddScoped<IEnrollmentService, EnrollmentService>();
+
 var app = builder.Build();
+
+app.UseMiddleware<ExceptionHandlingMiddleware>();
 
 if (app.Environment.IsDevelopment())
 {
@@ -30,5 +38,7 @@ if (app.Environment.IsDevelopment())
 }
 
 app.UseHttpsRedirection();
+
 app.MapControllers();
+
 app.Run();
