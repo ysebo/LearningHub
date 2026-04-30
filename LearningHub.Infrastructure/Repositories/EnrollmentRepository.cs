@@ -1,6 +1,6 @@
 using LearningHub.Application.Interfaces.Persistence;
 using LearningHub.Domain.Entities;
-using LearningHub.Infrastructure.Data;
+using LearningHub.Infrastructure.Persistence;
 using Microsoft.EntityFrameworkCore;
 
 namespace LearningHub.Infrastructure.Repositories;

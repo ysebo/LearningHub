@@ -1,46 +1,51 @@
 using LearningHub.Application.Exceptions;
 using Microsoft.AspNetCore.Mvc;
+using System;
+using System.Net;
+using System.Threading.Tasks;
 
 namespace LearningHub.Api.Middleware;
 
-public sealed class ExceptionHandlingMiddleware(
-    RequestDelegate next,
-    ILogger<ExceptionHandlingMiddleware> logger)
+public class ExceptionMiddleware
 {
+    private readonly RequestDelegate _next;
+    private readonly ILogger<ExceptionMiddleware> _logger;
+
+    public ExceptionMiddleware(RequestDelegate next, ILogger<ExceptionMiddleware> logger)
+    {
+        _next = next;
+        _logger = logger;
+    }
+
     public async Task InvokeAsync(HttpContext context)
     {
         try
         {
-            await next(context);
-        }
-        catch (AppException exception)
-        {
-            logger.LogWarning(exception, "Application error: {Message}", exception.Message);
-            await WriteProblemDetailsAsync(context, exception.StatusCode, exception.Message);
+            await _next(context);
         }
         catch (Exception exception)
         {
-            logger.LogError(exception, "Unexpected server error.");
-            await WriteProblemDetailsAsync(
-                context,
-                StatusCodes.Status500InternalServerError,
-                "Something went wrong on the server.");
+            _logger.LogError(
+                exception,
+                "Unhandled exception while processing {Method} {Path}",
+                context.Request.Method,
+                context.Request.Path);
+
+            await HandleExceptionAsync(context);
         }
     }
 
-    private static async Task WriteProblemDetailsAsync(
-        HttpContext context,
-        int statusCode,
-        string detail)
+    private static async Task HandleExceptionAsync(HttpContext context)
     {
-        context.Response.StatusCode = statusCode;
         context.Response.ContentType = "application/json";
+        context.Response.StatusCode = (int)HttpStatusCode.InternalServerError;
 
         var problemDetails = new ProblemDetails
         {
-            Status = statusCode,
-            Title = "Request failed",
-            Detail = detail,
+            Status = context.Response.StatusCode,
+            Title = "Server error.",
+            Type = "https://tools.ietf.org/html/rfc9110#section-15.6.1",
+            Detail = "An unexpected error occurred.",
             Instance = context.Request.Path
         };
 
