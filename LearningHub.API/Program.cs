@@ -1,10 +1,10 @@
 using LearningHub.Application.Interfaces.Persistence;
 using LearningHub.Application.Interfaces.Services;
 using LearningHub.Application.Services;
+using LearningHub.Api.Middleware;
 using LearningHub.Infrastructure.Persistence;
 using LearningHub.Infrastructure.Repositories;
 using Microsoft.EntityFrameworkCore;
-using LearningHub.API.Middleware;
 var builder = WebApplication.CreateBuilder(args);
 
 builder.Services.AddControllers();
